@@ -2,7 +2,7 @@ import json
 import paho.mqtt.client as mqtt
 from database import insert_measurement
 
-BROKER = "192.168.98.159"
+BROKER = "192.168.214.159"         # IP adresa serveru s MQTT brokerem
 TOPIC = "temperature/data"
 
 def on_connect(client, userdata, flags, rc):
@@ -28,4 +28,5 @@ def start_mqtt():
     client.on_message = on_message
 
     client.connect(BROKER, 1883, 60)
-    client.loop_start()
+    client.loop_start()  # běží ve vlákně, nezablokuje Flask
+

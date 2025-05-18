@@ -80,5 +80,3 @@ def delete_data(data_id):
     db.session.delete(data_obj)
     db.session.commit()
     return jsonify({'message': 'Data smazana'}), 200
-
-

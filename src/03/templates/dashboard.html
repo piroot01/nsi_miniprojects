@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <title>Teplotní Dashboard</title>
-    <meta http-equiv="refresh" content="5">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ version_number }}">
-</head>
-<body>
-    <h1>Záznam teploty</h1>
-    <form method="post" action="/clear" onsubmit="return confirm('Opravdu chceš smazat všechna měření?');">
-        <button type="submit">Smazat všechny záznamy</button>
-    </form>
-    <table class="styled-table">
+{% extends 'layout.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Vítejte v Dashboardu</h1>
+<h4>Naměřené hodnoty</h4>
+<br>
+<button class="btn btn-outline-danger btn-sm" onclick="deleteAllData();">Smazat všechny záznamy</button>
+<br>
+<!-- Tabulka měření -->
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>ID</th>
@@ -19,19 +16,72 @@
                 <th>Čas měření</th>
                 <th>Čas odeslání</th>
                 <th>Čas přijetí</th>
+                <th>Smazat</th>
             </tr>
         </thead>
         <tbody>
             {% for row in measurements %}
-            <tr>
+            <tr id="row-{{ row[0] }}">
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
                 <td>{{ row[2] }}</td>
                 <td>{{ row[3] }}</td>
                 <td>{{ row[4] }}</td>
+                <td>
+                    <button
+                      class="btn btn-outline-danger btn-sm"
+                      onclick="deleteData({{ row[0] }});"
+                    >Smazat</button>
+                  </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+
+<div class="mb-3">
+  <a href="{{ url_for('dashboard', sort='asc') }}" class="btn btn-outline-secondary btn-sm {% if sort == 'asc' %}active{% endif %}">Od nejstarší</a>
+  <a href="{{ url_for('dashboard', sort='desc') }}" class="btn btn-outline-secondary btn-sm {% if sort == 'desc' %}active{% endif %}">Od nejnovější</a>
+</div>
+
+<!-- Graf -->
+<h4 class="mt-4">Graf naměřených hodnot v čase</h4>
+<br>
+<canvas id="temperatureChart" width="400" height="200"></canvas>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // These come straight from your view
+  const labels = {{ labels | tojson }};
+  const temps  = {{ temps  | tojson }};
+
+  const ctx = document.getElementById('temperatureChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Teplota (°C)',
+        data: temps,
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { title: { display: true, text: 'Čas zápisu' } },
+        y: {
+          title: { display: true, text: 'Teplota (°C)' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+});
+</script>
+
+
+{% endblock %}

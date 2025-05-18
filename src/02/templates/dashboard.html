@@ -3,7 +3,8 @@
 
 {% block content %}
 <h1>Vítejte v Dashboardu</h1>
-<p>Naměřené hodnoty:</p>
+<h4>Naměřené hodnoty</h4>
+<br>
 
 <table class="table table-striped">
   <thead>
@@ -11,14 +12,21 @@
       <th>ID</th>
       <th>Teplota</th>
       <th>Datum a čas</th>
+      <th>Smazat</th>
     </tr>
   </thead>
   <tbody>
     {% for row in data %}
-    <tr>
+    <tr id="row-{{ row.id }}">
       <td>{{ row.id }}</td>
       <td>{{ row.temperature }}</td>
       <td>{{ row.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+      <td>
+        <button
+          class="btn btn-outline-danger btn-sm"
+          onclick="deleteData({{ row.id }});"
+        >Smazat</button>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
@@ -28,5 +36,46 @@
   <a href="{{ url_for('dashboard', sort='asc') }}" class="btn btn-outline-secondary btn-sm {% if sort == 'asc' %}active{% endif %}">Od nejstarší</a>
   <a href="{{ url_for('dashboard', sort='desc') }}" class="btn btn-outline-secondary btn-sm {% if sort == 'desc' %}active{% endif %}">Od nejnovější</a>
 </div>
+
+<!-- Graf -->
+<h4 class="mt-4">Graf naměřených hodnot v čase</h4>
+<br>
+<canvas id="temperatureChart" width="400" height="200"></canvas>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // These come straight from your view
+  const labels = {{ labels | tojson }};
+  const temps  = {{ temps  | tojson }};
+
+  const ctx = document.getElementById('temperatureChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Teplota (°C)',
+        data: temps,
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { title: { display: true, text: 'Čas zápisu' } },
+        y: {
+          title: { display: true, text: 'Teplota (°C)' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+});
+</script>
+
 
 {% endblock %}

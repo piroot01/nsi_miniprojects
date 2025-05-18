@@ -48,7 +48,18 @@ def dashboard():
         data = Data.query.order_by(Data.created_at.desc()).all()
     else:
         data = Data.query.order_by(Data.created_at.asc()).all()
-    return render_template('dashboard.html', data=data)
+
+    # Precompute label & value arrays for Chart.js
+    labels = [obj.created_at.strftime('%d.%m.%Y %H:%M:%S') for obj in data]
+    temps  = [obj.temperature for obj in data]
+
+    return render_template(
+        'dashboard.html',
+        data=data,
+        labels=labels,
+        temps=temps,
+        sort=sort_order
+    )
 
 
 @app.route('/register', methods=['GET', 'POST'])
