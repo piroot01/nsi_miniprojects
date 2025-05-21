@@ -48,6 +48,37 @@
 <br>
 <canvas id="temperatureChart" width="400" height="200"></canvas>
 
+<div class="col-md-4">
+    <h2>Ovládání měření a LED</h2>
+
+    <form method="post" action="/control" class="mb-3">
+        <div class="d-grid gap-2">
+            <button type="submit" name="action" value="LED ON" class="btn btn-primary">💡 LED ON</button>
+            <button type="submit" name="action" value="LED OFF" class="btn btn-primary">💡 LED OFF</button>
+            <button type="submit" name="action" value="MEASURE ON" class="btn btn-secondary">Spustit měření</button>
+            <button type="submit" name="action" value="MEASURE OFF" class="btn btn-secondary">Zastavit měření</button>
+        </div>
+    </form>
+
+    <form method="post" action="/control" class="mb-3">
+        <label for="period" class="form-label">Nastavit periodu (s):</label>
+        <div class="input-group">
+            <input type="number" name="period" min="1" max="30" value="{{ current_period }}" class="form-control">
+            <button type="submit" class="btn btn-primary">Nastavit</button>
+        </div>
+    </form>
+
+    <h3>Stav systému</h3>
+    <ul class="list-unstyled">
+        <li>LED: <strong class="{{ 'status-green' if led_state else 'status-red' }}">
+            {{ 'ZAPNUTÁ' if led_state else 'VYPNUTÁ' }}</strong></li>
+        <li>Měření: <strong class="{{ 'status-green' if measure_state else 'status-red' }}">
+            {{ 'AKTIVNÍ' if measure_state else 'NEAKTIVNÍ' }}</strong></li>
+        <li>Perioda měření: <strong>{{ current_period }} s</strong></li>
+    </ul>
+</div>
+
+
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

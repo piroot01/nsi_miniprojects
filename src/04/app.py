@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from database import get_all_measurements, init_db, clear_measurements, delete_measurement, insert_measurement
-from mqtt import start_mqtt
+from mqtt import start_mqtt, publish_command
 
 
 from database import db, User
@@ -14,6 +14,12 @@ app.config['SECRET_KEY'] = 'ShellNotPass'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'  # pripojeni k databazy
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.urandom(24) #pouze pro odhlaseni kdyz se aplikace vypne
+
+# global variables
+is_led_on = False
+is_measuring = False
+measurement_interval = 10
+
 
 db.init_app(app)
 
@@ -104,11 +110,43 @@ def login():
 
     return render_template('login.html')
 
-
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route("/control", methods=["POST"])
+def control():
+    global is_led_on, is_measuring, measurement_interval
+
+    # Read form inputs
+    command_str = request.form.get("action")
+    new_interval = request.form.get("period")
+
+    # Handle action commands
+    if command_str:
+        publish_command(command_str)
+        if command_str == "LED ON":
+            is_led_on = True
+        elif command_str == "LED OFF":
+            is_led_on = False
+        elif command_str == "MEASURE ON":
+            is_measuring = True
+        elif command_str == "MEASURE OFF":
+            is_measuring = False
+
+    # Handle period adjustment
+    if new_interval:
+        try:
+            interval_val = int(new_interval)
+            # Only send update if it's a positive change
+            if interval_val > 0 and interval_val != measurement_interval:
+                measurement_interval = interval_val
+                publish_command(f"SET INTERVAL {interval_val}")
+        except ValueError:
+            print("Invalid interval value:", new_interval)
+
+    return redirect(url_for("dashboard"))
 
 
 if __name__ == "__main__":
