@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
+from flask_login import login_required
 from database import db, Data
 
 api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/data', methods=['POST'])
+@login_required
 def insert_data():
     # Vloží novou naměřenou hodnotu.
     data_json = request.get_json()
@@ -18,6 +20,7 @@ def insert_data():
 
 
 @api_bp.route('/data', methods=['GET'])
+@login_required
 def get_data():
     # Vrátí všechny naměřené hodnoty
     # ziska parametru sort
@@ -39,6 +42,7 @@ def get_data():
 
 
 @api_bp.route('/data/last', methods=['GET'])
+@login_required
 def get_last_data():
     # Vrátí poslední naměřenou hodnotu.
     data_obj = Data.query.order_by(Data.created_at.desc()).first()
@@ -52,6 +56,7 @@ def get_last_data():
 
 
 @api_bp.route('/data/<int:data_id>', methods=['GET'])
+@login_required
 def get_data_by_id(data_id):
     # Vrátí hodnotu s daným ID.
     data_obj = Data.query.get_or_404(data_id)
@@ -63,6 +68,7 @@ def get_data_by_id(data_id):
 
 
 @api_bp.route('/data/oldest', methods=['DELETE'])
+@login_required
 def delete_oldest_data():
     # Smaže nejstarší naměřenou hodnotu.
     data_obj = Data.query.order_by(Data.created_at.asc()).first()
@@ -74,6 +80,7 @@ def delete_oldest_data():
 
 
 @api_bp.route('/data/<int:data_id>', methods=['DELETE'])
+@login_required
 def delete_data(data_id):
     # Smaže záznam podle ID.
     data_obj = Data.query.get_or_404(data_id)
